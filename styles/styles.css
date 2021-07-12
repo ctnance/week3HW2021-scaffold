@@ -267,9 +267,4 @@ footer {
     max-height: 350px;
     order: 1;
   }
-
-  .card-container {
-    max-width: 44px;
-    max-height: 44px;
-  }
 }

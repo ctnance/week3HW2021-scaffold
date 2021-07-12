@@ -1,6 +1,6 @@
 // GAME CONSTANTS
 const BOARD_SIZE = window.innerWidth/(window.innerWidth/.95)*100; // Board size is based on percentage of width of browser window
-const CARD_COLUMNS = 2;
+const CARD_COLUMNS = 4;
 const TILE_SIZE = (BOARD_SIZE / CARD_COLUMNS) * .82;
 const MAX_CARDS = CARD_COLUMNS * CARD_COLUMNS; // This variable should not be changed (total number of cards)
 const MAX_MATCHES = MAX_CARDS / 2; // This variable should not be changed (total number of possible matches)
@@ -65,17 +65,20 @@ const createGameBoard = () => {
 const resetGame = () => {
     // Start timer if not already started (timer is undefined)
     if (timer) { stopTimer(); }
+    // Hide modal in case it is on the screen
     hideModal();
+    // Clear important stat and array variables
     rating = 0;
     moves = 0;
     matches = 0;
     minutes = MAX_MINUTES;
     seconds = MAX_SECONDS;
+    deck = [];
+    // Clear the inner content of the board (all HTML)
     board.textContent = "";
     // Add "0" when seconds are in single digits, otherwise slice string to only two numbers (seconds in the 10th digits)
     timerText.innerHTML = minutes + ":" + ('0' + seconds).slice(-2);
-    board.innerText = "";
-    deck = [];
+    // Create the game board from scratch
     createGameBoard();
 }
 
@@ -320,6 +323,8 @@ const showModal = () => {
     let submessage = modal.querySelector(".submessage");
     if (rating > 0) {
         let ratingText = modal.querySelector(".ratingText");
+        // Clear rating text
+        ratingText.innerHTML = "";
         for (let i = 0; i < rating; i++) {
             ratingText.innerHTML += "⭐ ";
         }
