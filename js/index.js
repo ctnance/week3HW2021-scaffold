@@ -1,10 +1,12 @@
 // GAME CONSTANTS
+const BOARD_SIZE = window.innerWidth/(window.innerWidth/.95)*100; // Board size is based on percentage of width of browser window
 const CARD_COLUMNS = 6;
+const TILE_SIZE = (BOARD_SIZE / CARD_COLUMNS) * .82;
 const MAX_CARDS = CARD_COLUMNS * CARD_COLUMNS; // This variable should not be changed (total number of cards)
 const MAX_MATCHES = MAX_CARDS / 2; // This variable should not be changed (total number of possible matches)
 const MAX_ID = 151; // Max ID of Pokemon to implement (151 to respresent Gen 1)
 const MAX_MINUTES = 1; // Total minutes to complete game
-const MAX_SECONDS = 0; // Total seconds to complete game
+const MAX_SECONDS = 30; // Total seconds to complete game
 
 // GAME VARIABLES
 let deck = []; // The deck will be dynamically created
@@ -40,6 +42,9 @@ const createGameBoard = () => {
     createDeck();
     shuffleDeck();
     // Set Board Grid Size to CARD_COLUMNS Variable
+    console.log(BOARD_SIZE);
+    board.style.width = `${BOARD_SIZE}vw`;
+    board.style.height = `${BOARD_SIZE}vw`;
     board.style.gridTemplateColumns = `repeat(${CARD_COLUMNS}, 1fr)`;
     // Loop Through # of Rows and Columns Necessary Based on CARD_COLUMNS Variable
     for (let i = 0; i < MAX_CARDS; i++) {
