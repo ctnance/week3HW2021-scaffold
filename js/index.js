@@ -1,6 +1,6 @@
 // GAME CONSTANTS
 const BOARD_SIZE = window.innerWidth/(window.innerWidth/.95)*100; // Board size is based on percentage of width of browser window
-const CARD_COLUMNS = 6;
+const CARD_COLUMNS = 2;
 const TILE_SIZE = (BOARD_SIZE / CARD_COLUMNS) * .82;
 const MAX_CARDS = CARD_COLUMNS * CARD_COLUMNS; // This variable should not be changed (total number of cards)
 const MAX_MATCHES = MAX_CARDS / 2; // This variable should not be changed (total number of possible matches)
@@ -38,11 +38,10 @@ const gameStates = {
 }
 
 const createGameBoard = () => {
-    // Create Deck
+    // Create & Shuffle Deck
     createDeck();
     shuffleDeck();
     // Set Board Grid Size to CARD_COLUMNS Variable
-    console.log(BOARD_SIZE);
     board.style.width = `${BOARD_SIZE}vw`;
     board.style.height = `${BOARD_SIZE}vw`;
     board.style.gridTemplateColumns = `repeat(${CARD_COLUMNS}, 1fr)`;
@@ -126,6 +125,7 @@ const createDeck = () => {
 }
 
 const shuffleDeck = () => {
+
     deck.sort(() => Math.random() - 0.5);
     deck.sort(() => Math.random() - 0.5);
     deck.sort(() => Math.random() - 0.5);
@@ -266,7 +266,10 @@ const incrementMoves = () => {
 const handleRating = () => {
     let gameTimeGiven = MAX_SECONDS + (MAX_MINUTES * 60);
     let gameTimeSpent = seconds + (minutes * 60);
+    // A basic scoring system based on time spent finding all matches
     let score = (gameTimeSpent / gameTimeGiven) * 100;
+    // Add the number of matches to the timed score
+    score += matches;
 
     if (score > 90) {
         rating = 5;
@@ -342,4 +345,3 @@ board.addEventListener("click", (event) => {
 });
 
 resetGame();
-unflipCards();

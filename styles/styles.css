@@ -95,15 +95,14 @@ footer {
   /* Grid Styles */
   display: grid;
   gap: 0.5em;
-  justify-content: center;
 }
 
 .card-container {
   background-color: transparent;
   width: 100%;
   height: 100%;
-  max-width: 80px;
-  max-height: 80px;
+  /* max-width: 80px;
+  max-height: 80px; */
 }
 
 .inner-card {
@@ -228,10 +227,6 @@ footer {
     gap: 0.5em;
   }
 
-  .card-container {
-    width: 80px;
-    height: 80px;
-  }
   /* Modal Secion */
   .end-game-modal {
     max-width: 50vw;
