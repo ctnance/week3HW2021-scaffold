@@ -1,46 +1,47 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Fallout Memory Game</title>
-    <!-- TODO: Connect the given styles file to this HTML -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Match!</title>
+    <!-- CSS Styles -->
+    <link rel="stylesheet" href="./styles/styles.css">
+    <!-- Script -->
+    <script src="./js/index.js" defer></script>
 </head>
+
 <body>
-    <div class="container">
-        <header class="header">
-            <h1>Memory Game</h1>
-            <h2>FallOut Edition</h2>
-        </header>
-
-        <section class="score-panel">
-            <h3>Score Panel</h3>
-        <ul id="star-rating" class="star-rating">
-            <li class="star"><i class="fa fa-star"></i></li>
-            <li class="star"><i class="fa fa-star"></i></li>
-            <li class="star"><i class="fa fa-star"></i></li>
-            </ul>
-            <span class="moves-counter">0</span> Moves
-            <div class="timer-container">
-                <span class="timer"><i class="fa fa-hourglass-start"></i> Timer: 00:00</span>
-            </div>
-            <div class="reset">
-                <button class="btn reset-btn">Reset <i class="fa fa-repeat"></i></button>
-            </div>
+    <header>
+        <h1>Pokémon Matching!</h1>
+        <h2>Gotta Match 'Em All!</h2>
+        <section class="scoreboard">
+            <p>Matches: <span class="matchesText">0</span></p>
+            <p>Moves: <span class="movesText">0</span></p>
+            <p>Timer: <span class="timerText">0:00</span></p>
+            <button class="resetButton" onclick="resetGame()">Reset</button>
         </section>
-        <!-- Modal section-->
-        <table>
-            <tr class="deck"></tr>
-        </table>
-    </div>
+    </header>
 
-    <!-- Modal -->
-    <section class="win-game-modal">
-        
+    <main>
+        <section class="board">
+        </section>
+    </main>
+
+    <footer>
+        <p>Created with ❤️ by Christopher Nance</p>
+    </footer>
+
+    <!-- Modal Section -->
+    <section class="end-game-modal">
+        <h2 class="message"></h2>
+        <p class="submessage"></p>
+        <p class="ratingText"></p>
+        <img class="modal-img" src="" alt="">
+        <button class="resetButton" onclick="resetGame();">Play Again?</button>
+        <button class="closeBtn" onclick="hideModal();">X</button>
     </section>
-
-    <!-- TODO: Connect the given JS file to your HTML -->
 </body>
+
 </html>

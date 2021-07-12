@@ -1,305 +1,340 @@
-const deckCards = ["Agility.png", "Agility.png", "Boat.png", "Boat.png", "Citizenship.png", "Citizenship.png", "Hack.png", "Hack.png", "Nerd-Rage.png", "Nerd-Rage.png", "Nuka-Cola.png", "Nuka-Cola.png", "Robotics.png", "Robotics.png", "Shock.png", "Shock.png"];
+// GAME CONSTANTS
+const CARD_COLUMNS = 6;
+const MAX_CARDS = CARD_COLUMNS * CARD_COLUMNS; // This variable should not be changed (total number of cards)
+const MAX_MATCHES = MAX_CARDS / 2; // This variable should not be changed (total number of possible matches)
+const MAX_ID = 151; // Max ID of Pokemon to implement (151 to respresent Gen 1)
+const MAX_MINUTES = 1; // Total minutes to complete game
+const MAX_SECONDS = 0; // Total seconds to complete game
 
-const deck = document.querySelector(".deck");
-let opened = [];
-let matched = [];
-const modal = document.getElementById("modal");
-const reset = document.querySelector(".reset-btn");
-const playAgain = document.querySelector(".play-again-btn");
-const movesCount = document.querySelector(".moves-counter");
+// GAME VARIABLES
+let deck = []; // The deck will be dynamically created
+let matched = []; // Matching pairs found will be added here
+let flippedCards = []; // Flipped cards will go here (two at a time)
+let rating = 0;
 let moves = 0;
-const star = document.getElementById("star-rating").querySelectorAll(".star");
-let starCount = 3;
-const timeCounter = document.querySelector(".timer");
-let time;
-let minutes = 0;
-let seconds = 0;
-let timeStart = false;
+let matches = 0;
+let timer;
+let minutes = MAX_MINUTES;
+let seconds = MAX_SECONDS;
+// GAME ELEMENTS
+const board = document.querySelector(".board");
+const matchesText = document.querySelector(".matchesText");
+const movesText = document.querySelector(".movesText");
+const timerText = document.querySelector(".timerText");
+const resetButton = document.querySelector(".resetButton");
 
-function shuffle(array) {
-  let currentIndex = array.length;
-  let temporaryValue;
-  let randomIndex;
-
-  while (currentIndex !== 0) {
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex -= 1;
-    temporaryValue = array[currentIndex];
-    array[currentIndex] = array[randomIndex];
-    array[randomIndex] = temporaryValue;
-  }
-  return array;
-}
-
-// TODO: Implement this function
-function startGame() {
-  // Invoke shuffle function and store in variable
-  const shuffledDeck = shuffle(deckCards);
-  // Implement a for loop on the shuffledDeck array
-  
-    // Create the <td> tags and assign it to a variable called tdTag
-    
-    // Give tdTag Element a class of card
-    
-    // Create the <img> tag and assign it to an addImage variable
-    
-    // make the addImage a child of the tdTag
-    
-    // Set the addImage element src path with the shuffled deck
-    // TODO: replace the REPLACE ME string with the element in the shuffledDeck array at index i
-    addImage.setAttribute('src', 'img/' + 'REPLACE ME with the element in shuffleDeck at index i');
-    // Add an alt tag to the addImage element
-    addImage.setAttribute('alt', 'image of vault boy from fallout');
-    // make the tdTag element a child of the deck element
-    
-}
-
-startGame();
-
-function removeCard() {
-  // As long as <ul> deck has a child node, remove it
-  while (deck.hasChildNodes()) {
-    deck.removeChild(deck.firstChild);
-  }
-}
-
-function timer() {
-  // Update the count every 1 second
-  time = setInterval(function() {
-    seconds++;
-    if (seconds === 60) {
-      minutes++;
-      seconds = 0;
+// GAME STATES
+const gameStates = {
+    won: {
+        message: "Congratulations!",
+        submessage: `You found all ${MAX_MATCHES} matches. You are a Pokémon Matching Master!`,
+    },
+    lost: {
+        message: "Oh no!",
+        submessage: `You managed to match ${matches / 2} Pokémon. You were missing ${MAX_MATCHES - (matches / 2)}.`,
     }
-    // Update the timer in HTML with the time it takes the user to play the game
-    timeCounter.innerHTML = "<i class='fa fa-hourglass-start'></i>" + " Timer: " + minutes + " Mins " + seconds + " Secs" ;
-  }, 1000);
 }
 
-function stopTime() {
-  clearInterval(time);
+const createGameBoard = () => {
+    // Create Deck
+    createDeck();
+    shuffleDeck();
+    // Set Board Grid Size to CARD_COLUMNS Variable
+    board.style.gridTemplateColumns = `repeat(${CARD_COLUMNS}, 1fr)`;
+    // Loop Through # of Rows and Columns Necessary Based on CARD_COLUMNS Variable
+    for (let i = 0; i < MAX_CARDS; i++) {
+        // Create a Card for Position on Board
+        let card = createCard();
+        card.id = i;
+        card.style.pointerEvents = "auto";
+        let cardFront = card.querySelector(".card-front");
+        cardFront.append(deck[i]);
+        board.appendChild(card);
+    }
 }
 
-function resetEverything() {
-  // Stop time, reset the minutes and seconds update the time inner HTML
-  stopTime();
-  timeStart = false;
-  seconds = 0;
-  minutes = 0;
-  timeCounter.innerHTML = "<i class='fa fa-hourglass-start'></i>" + " Timer: 00:00";
-  // Reset star count and the add the class back to show stars again
-  star[1].firstElementChild.classList.add("fa-star");
-  star[2].firstElementChild.classList.add("fa-star");
-  starCount = 3;
-  // Reset moves count and reset its inner HTML
-  moves = 0;
-  movesCount.innerHTML = 0;
-  // Clear both arrays that hold the opened and matched cards
-  matched = [];
-  opened = [];
-  // Clear the deck
-  removeCard();
-  // Create a new deck
-  startGame();
+// ~~~~~~~~~~
+// RESET GAME
+// ~~~~~~~~~~
+const resetGame = () => {
+    // Start timer if not already started (timer is undefined)
+    if (timer) { stopTimer(); }
+    hideModal();
+    moves = 0;
+    matches = 0;
+    minutes = MAX_MINUTES;
+    seconds = MAX_SECONDS;
+    board.textContent = "";
+    // Add "0" when seconds are in single digits, otherwise slice string to only two numbers (seconds in the 10th digits)
+    timerText.innerHTML = minutes + ":" + ('0' + seconds).slice(-2);
+    createGameBoard();
 }
 
-function incrMovesCounter() {
-  // Update the html for the moves counter
-  movesCount.innerHTML ++;
-  // Keep track of the number of moves for every pair checked
-  moves ++;
+const createCard = () => {
+    // Create Card Element
+    let card = document.createElement("div");
+    card.classList.add("card-container");
+
+    // Create Inner Card
+    let innerCard = document.createElement("div");
+    innerCard.classList.add("inner-card");
+
+    // Create Back of Card
+    let cardBack = document.createElement("div");
+    cardBack.classList.add("card-back");
+
+    // Create Front of Card
+    let cardFront = document.createElement("div");
+    cardFront.classList.add("card-front");
+    cardFront.style.padding = "10%";
+
+    // Add Front & Back of Card to Inner Card
+    innerCard.appendChild(cardBack);
+    innerCard.appendChild(cardFront);
+
+    // Add Inner Card to Card Container
+    card.appendChild(innerCard);
+
+    return card;
 }
 
-function adjustStarRating() {
-  if (moves === 14) {
-    // First element child is the <i> within the <li>
-    star[2].firstElementChild.classList.remove("fa-star");
-    starCount--;
-  }
-  if (moves === 18) {
-    star[1].firstElementChild.classList.remove("fa-star");
-    starCount--;
-  }
+const createDeck = () => {
+    // TODO: ENSURE NO RANDOM IDs ARE DUPLICATED
+
+    // Loop through array by the amount of total cards in deck
+    for (let i = 0; i < MAX_CARDS; i += 2) {
+        // Create an image element to go into the deck
+        let img = document.createElement("img");
+        // Create a random id for the image 
+        let randID = Math.floor(Math.random() * MAX_ID + 1);
+        // Set the img src and alt attributes
+        img.src = `https://pokeres.bastionbot.org/images/pokemon/${randID}.png`;
+        img.alt = `Pokemon #${randID}`;
+        // Add image to deck
+        deck.push(img);
+        // Create a matching image to go into the deck
+        let matchingImg = document.createElement("img");
+        matchingImg.src = img.src;
+        matchingImg.alt = img.alt;
+        deck.push(matchingImg);
+    }
 }
 
+const shuffleDeck = () => {
+    deck.sort(() => Math.random() - 0.5);
+    deck.sort(() => Math.random() - 0.5);
+    deck.sort(() => Math.random() - 0.5);
+}
 
-// TODO: stub out this function after the compare the two images src comment
-function compareTwo() {
-  // When there are 2 cards in the opened array
-  if (opened.length === 2) {
-    // Disable any further mouse clicks on other cards
+// ~~~~~~~~~~~
+// START TIMER
+// ~~~~~~~~~~~
+const startTimer = () => {
+    timer = setInterval(() => {
+        seconds--;
+        if (seconds < 0) {
+            minutes--;
+            seconds = 59;
+        }
+
+        timerText.innerHTML = minutes + ":" + (('0' + seconds).slice(-2));
+
+        if (minutes <= 0 && seconds <= 0) {
+            handleGameEnd();
+        }
+    }, 1000);
+}
+
+// ~~~~~~~~~~
+// STOP TIMER
+// ~~~~~~~~~~
+const stopTimer = () => {
+    timer = clearInterval(timer);
+}
+
+const flipCard = (card) => {
+    // TODO: (FIX NEEDED) The same card can be "flipped" twice if tapped quickly enough
+    // Do not flip card(s) if two are already flipped
+    if (flippedCards.length === 2) { return; }
+    // Add flip class to card, but only if it does not have it already (which it shouldn't)
+    card.classList.contains("flip") ? card.classList.remove("flip") : card.classList.add("flip");
+    flippedCards.push(card);
+
+    if (flippedCards.length === 2) {
+        checkForMatch();
+    }
+}
+
+// ~~~~~~~~~~~~~~~
+// CHECK FOR MATCH
+// ~~~~~~~~~~~~~~~
+const checkForMatch = () => {
+    // Ensure two cards are flipped before executing logic
+    if (flippedCards.length !== 2) { return; }
+    // Prevent clicks on the board until cards are assessed for a match
     document.body.style.pointerEvents = "none";
-  }
-  // Compare the two images src in the opened array
-  // TODO: implement
-  // if the opened array has a length of two && the element at index = 0 src string
-  // equals the element at index 1 src string
-  // the image srcs match
-  
-    // TODO: Invoke the displayMatchingCards()
-    // TODO: console log "It's a Match!"  
-    
-    
-  // TODO: if the image src's do not match
-  
-    // TODO: invoke the displayNotMatchingCards()
-    // TODO: console log "No Match!"
-  
+
+    // Get images of both flipped cards
+    let img1 = flippedCards[0].querySelector("img");
+    let img2 = flippedCards[1].querySelector("img");
+    setTimeout(() => {
+        if (img1.src === img2.src) {
+            handleMatch();
+        } else {
+            unflipCards();
+        }
+    }, 800);
+
+    // Increment the number of moves after this turn
+    incrementMoves();
 }
 
-// TODO:
-function displayMatchingCards() {
-  /* Access the two cards in opened array and add
-  the class of match to the imgages parent: the <li> tag
-  */
-  setTimeout(function() {
-    // add the match class (Why are we adding it to the parentElement?)
-      // the match class should make the img visible
-    opened[0].parentElement.classList.add("match");
-    opened[1].parentElement.classList.add("match");
-    // TODO: Push the flipped cards (opened[0] and opened[1]) to the matched array
-    
-    // Allow for further mouse clicks on cards
+// ~~~~~~~~~~~~
+// HANDLE MATCH
+// ~~~~~~~~~~~~
+const handleMatch = () => {
+    // Ensure two cards are flipped before executing logic
+    if (flippedCards.length !== 2) { return; }
+    console.log("Match!");
+    flippedCards[0].classList.add("grow");
+    flippedCards[1].classList.add("grow");
+
+    setTimeout(() => {
+        flippedCards[0].classList.remove("grow");
+        flippedCards[1].classList.remove("grow");
+
+        // Add the matching flipped pair to the matched array
+        matched.push(flippedCards[0]);
+        matched.push(flippedCards[1]);
+
+        // Empty the flipped cards array
+        flippedCards = [];
+
+        incrementMatches();
+
+        // Allow clicks again
+        document.body.style.pointerEvents = "auto";
+    }, 600);
+}
+
+// ~~~~~~~~~~~~
+// UNFLIP CARDS
+// ~~~~~~~~~~~~
+const unflipCards = () => {
+    // Ensure two cards are flipped before executing logic
+    if (flippedCards.length !== 2) { return; }
+
+    // Remove .flip class from cards
+    flippedCards[0].classList.remove("flip");
+    flippedCards[1].classList.remove("flip");
+
+    // Empty the flipped cards array
+    flippedCards = [];
+
+    // Allow clicks again
     document.body.style.pointerEvents = "auto";
-    // TODO: invoke the checkIsGameFinished function
-    
-   
-    // Clear the opened array
-    opened = [];
-  }, 600);
-  // Call movesCounter to increment by one
-  incrMovesCounter();
-  adjustStarRating();
 }
 
-function displayNotMatchingCards() {
-  /* After 700 miliseconds the two cards open will have
-  the class of flip removed from the images parent element <li>*/
-  setTimeout(function() {
-    // Remove class flip on images parent element
-    opened[0].parentElement.classList.remove("flip");
-    opened[1].parentElement.classList.remove("flip");
-    // Allow further mouse clicks on cards
-    document.body.style.pointerEvents = "auto";
-    // Remove the cards from opened array
-    opened = [];
-  }, 700);
-  // Call movesCounter to increment by one
-  incrMovesCounter();
-  adjustStarRating();
-}
+// ~~~~~~~~~~~~~~~~~
+// INCREMENT MATCHES
+// ~~~~~~~~~~~~~~~~~
+const incrementMatches = () => {
+    matches++;
+    matchesText.innerHTML = matches;
 
-function addStatsToModal() {
-  // Access the modal content div
-  const statsParent = document.querySelector(".modal-content");
-  // Create three different paragraphs
-  for (let i = 1; i <= 3; i++) {
-    // Create a new Paragraph
-    // TODO: create p tag and assign it a newly created statsElement variable
-    
-    // Add a class to the new Paragraph
-    // TODO: add the stats class to the statsElement
-    
-    
-    // Add the new created <p> tag to the modal content
-    // TODO: add the statsElement as a child of the statsParent element
-    
-  }
-  // Select all p tags with the class of stats and update the content
-  let p = statsParent.querySelectorAll("p.stats");
-  // Set the new <p> to have the content of stats (time, moves and star rating)
-  // TODO: Update all of the innerHTML text appropriately
-  p[0].innerHTML = "Update the time here with the minutes and seconds";
-  p[1].innerHTML = "Update this with how many moves it took";
-  p[2].innerHTML = "Update this with the star rating";
-}
-
-// TODO: Implement the pseudocode
-function displayModal() {
-// use getElementByID to grab the id="close" element and assign it to a variable called modalClose
-
-// use getElementByID to grab the id="modal" element and assign it to a variable called modal
-
-// Set modal to display block to show it
-
-
-// When the user clicks on the modalClose <span> (x), 
-modalClose.onclick = function() {
-    // set modal to diplay none
-    
-};
-// When the user clicks anywhere outside of the modal, close it
-  window.onclick = function(event) {
-      
-      if (event.target === modal) {
-        // update modal style to display none
-        modal.style.display = "none"
-      }
-  };
-}
-
-function checkIsGameFinished() {
-  // there are 8 images total
-  // if the matched array has 16 elements,
-  if (matched.length === 16) {
-    // stop the game
-    //TODO: invoke the stopTime function
-    
-    // tally stats
-    // TODO: invoke the addStatsToModal
-    
-    
-    // display modal
-    // TODO: invoke the displayModal function
-    
-    
-  }
-}
-
-// if a card is clicked
-  // if timerStart is false
-      // start timer
-  // flip the card
-
-deck.addEventListener("click", function(evt) {
-  if (evt.target.nodeName === "TD") {
-    // To console if I was clicking the correct element
-    console.log(evt.target.nodeName + " Was clicked");
-    // Start the timer after the first click of one card
-    // Executes the timer() function
-    if (timeStart === false) {
-      timeStart = true;
-      timer();
+    if (matches === MAX_MATCHES) {
+        handleGameEnd();
     }
-    // Call flipCard() function
-    flipCard();
-  }
+}
 
-  //Flip the card and display cards img
-  function flipCard() {
-    // When <li> is clicked add the class .flip to show img
-    evt.target.classList.add("flip");
-    // Call addToOpened() function
-    addToOpened();
-  }
+// ~~~~~~~~~~~~~~~
+// INCREMENT MOVES
+// ~~~~~~~~~~~~~~~
+const incrementMoves = () => {
+    moves++;
+    movesText.innerHTML = moves;
+}
 
-  //Add the fliped cards to the empty array of opened
-  function addToOpened() {
-    /* If the opened array has zero or one other img push another
-    img into the array so we can compare these two to be matched
-    */
-    if (opened.length === 0 || opened.length === 1) {
-      // Push that img to opened array
-      opened.push(evt.target.firstElementChild);
+// ~~~~~~~~~~~~~
+// HANDLE RATING
+// ~~~~~~~~~~~~~
+const handleRating = () => {
+    let gameTimeGiven = MAX_SECONDS + (MAX_MINUTES * 60);
+    let gameTimeSpent = seconds + (minutes * 60);
+    let score = (gameTimeSpent / gameTimeGiven) * 100;
+
+    if (score > 90) {
+        rating = 5;
+    } else if (score < 80) {
+        rating = 4;
+    } else if (score <= 75) {
+        rating = 3;
+    } else if (score <= 50) {
+        rating = 2;
+    } else if (score <= 30 && score > 0) {
+        rating = 1;
+    } else {
+        rating = 0;
     }
-    // Call compareTwo() function
-    compareTwo();
-  }
+    console.log("RAING = " + rating);
+}
+
+// ~~~~~~~~~~~~~~~
+// HANDLE GAME END
+// ~~~~~~~~~~~~~~~
+const handleGameEnd = () => {
+    stopTimer();
+    handleRating();
+    showModal();
+}
+
+// ~~~~~~~~~~
+// SHOW MODAL
+// ~~~~~~~~~~
+const showModal = () => {
+    // To Do: Disable interaction with content behind modal
+    const modal = document.querySelector(".end-game-modal");
+    let message = modal.querySelector(".message");
+    let submessage = modal.querySelector(".submessage");
+    if (rating > 0) {
+        let ratingText = modal.querySelector(".ratingText");
+        for (let i = 0; i < rating; i++) {
+            ratingText.innerHTML += "⭐ ";
+        }
+    }
+
+    if (matches === MAX_MATCHES) {
+        message.innerHTML = gameStates.won.message;
+        submessage.innerHTML = gameStates.won.submessage;
+    } else {
+        message.innerHTML = gameStates.lost.message;
+        submessage.innerHTML = gameStates.lost.submessage;
+    }
+
+    // Get the existing modal img element
+    let img = modal.querySelector("img");
+    // Use an existing image to save time loading a new one
+    img.src = board.querySelector("img").src;
+    img.alt = board.querySelector("img").alt;
+
+    modal.style.visibility = "visible";
+}
+
+const hideModal = () => {
+    const modal = document.querySelector(".end-game-modal");
+    modal.style.visibility = "hidden";
+}
+
+// Listen for card clicks
+board.addEventListener("click", (event) => {
+    // Ensure the back of the card is clicked
+    if (event.target.classList.contains("card-back")) {
+        // Start timer if not already started (timer is undefined)
+        if (!timer) { startTimer(); }
+        // Flip the card
+        flipCard(event.target.parentNode.parentNode);
+    }
 });
 
-reset.addEventListener('click', resetEverything);
-
-playAgain.addEventListener('click',function() {
-  modal.style.display = "none";
-  resetEverything();
-});
+resetGame();
+unflipCards();
