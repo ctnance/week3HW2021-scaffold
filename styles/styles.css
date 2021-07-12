@@ -200,7 +200,7 @@ footer {
   color: black;
 }
 
-.closeBtn {
+.hideModalButton {
   background-color: transparent;
   border: none;
   color: hsl(0, 100%, 50%);
@@ -211,11 +211,12 @@ footer {
   margin: 0;
 }
 
-.closeBtn:hover {
+.hideModalButton:hover {
+  background-color: transparent;
   color: hsl(0, 100%, 70%);
 }
 
-.closeBtn:active {
+.hideModalButton:active {
   color: hsl(0, 100%, 30%);
   transform: translateY(2px);
 }

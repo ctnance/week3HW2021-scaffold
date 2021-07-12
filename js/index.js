@@ -24,6 +24,8 @@ const matchesText = document.querySelector(".matchesText");
 const movesText = document.querySelector(".movesText");
 const timerText = document.querySelector(".timerText");
 const resetButton = document.querySelector(".resetButton");
+const modalResetButton = document.querySelector(".modalResetButton");
+const hideModalButton = document.querySelector(".hideModalButton");
 
 // GAME STATES
 const gameStates = {
@@ -66,11 +68,13 @@ const resetGame = () => {
     hideModal();
     moves = 0;
     matches = 0;
+    rating = 0;
     minutes = MAX_MINUTES;
     seconds = MAX_SECONDS;
     board.textContent = "";
     // Add "0" when seconds are in single digits, otherwise slice string to only two numbers (seconds in the 10th digits)
     timerText.innerHTML = minutes + ":" + ('0' + seconds).slice(-2);
+    board.innerText = "";
     createGameBoard();
 }
 
@@ -165,6 +169,9 @@ const flipCard = (card) => {
     card.classList.contains("flip") ? card.classList.remove("flip") : card.classList.add("flip");
     flippedCards.push(card);
 
+    // Play card flip sound
+    playSound("./sfx/card-flip.mp3");
+
     if (flippedCards.length === 2) {
         checkForMatch();
     }
@@ -201,8 +208,12 @@ const handleMatch = () => {
     // Ensure two cards are flipped before executing logic
     if (flippedCards.length !== 2) { return; }
     console.log("Match!");
+    // Add grow class to cards to visually indicate a match was found
     flippedCards[0].classList.add("grow");
     flippedCards[1].classList.add("grow");
+
+    // Play match sound
+    playSound("./sfx/match.mp3");
 
     setTimeout(() => {
         flippedCards[0].classList.remove("grow");
@@ -232,6 +243,9 @@ const unflipCards = () => {
     // Remove .flip class from cards
     flippedCards[0].classList.remove("flip");
     flippedCards[1].classList.remove("flip");
+
+    // Play card flip reverse sound
+    playSound("./sfx/card-flip-reverse.mp3");
 
     // Empty the flipped cards array
     flippedCards = [];
@@ -284,7 +298,6 @@ const handleRating = () => {
     } else {
         rating = 0;
     }
-    console.log("RAING = " + rating);
 }
 
 // ~~~~~~~~~~~~~~~
@@ -333,6 +346,11 @@ const hideModal = () => {
     modal.style.visibility = "hidden";
 }
 
+const playSound = (path) => {
+    let audio = new Audio(path);
+    audio.play();
+}
+
 // Listen for card clicks
 board.addEventListener("click", (event) => {
     // Ensure the back of the card is clicked
@@ -342,6 +360,21 @@ board.addEventListener("click", (event) => {
         // Flip the card
         flipCard(event.target.parentNode.parentNode);
     }
+});
+
+resetButton.addEventListener("click", (event) => {
+    playSound("./sfx/button.mp3");
+    resetGame();
+});
+
+modalResetButton.addEventListener("click", (event) => {
+    playSound("./sfx/button.mp3");
+    resetGame();
+});
+
+hideModalButton.addEventListener("click", (event) => {
+    playSound("./sfx/button.mp3");
+    hideModal();
 });
 
 resetGame();
