@@ -66,15 +66,16 @@ const resetGame = () => {
     // Start timer if not already started (timer is undefined)
     if (timer) { stopTimer(); }
     hideModal();
+    rating = 0;
     moves = 0;
     matches = 0;
-    rating = 0;
     minutes = MAX_MINUTES;
     seconds = MAX_SECONDS;
     board.textContent = "";
     // Add "0" when seconds are in single digits, otherwise slice string to only two numbers (seconds in the 10th digits)
     timerText.innerHTML = minutes + ":" + ('0' + seconds).slice(-2);
     board.innerText = "";
+    deck = [];
     createGameBoard();
 }
 
